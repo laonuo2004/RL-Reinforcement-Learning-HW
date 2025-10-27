@@ -1,0 +1,18 @@
+env:
+  map_size: 4  # Size of the environment map
+  frozen_prob: 0.8  # Probability of frozen tiles appearing
+  seed: 20241022  # Random seed for map generation
+  is_slippery: False  # Whether to set the ice surface as slippery
+  render_mode: human  # Render mode: human (visual) or ansi (text mode)
+policy_iteration:
+  gamma: 0.9  # Discount factor for future rewards
+  tol: 1e-3  # Convergence tolerance for determining algorithm termination
+qlearning:
+  num_episodes: 5000  # Total number of training episodes
+  gamma: 0.9  # Discount factor for future rewards
+  learning_rate: 0.1  # Learning rate
+  epsilon: 1  # Initial exploration rate for ε-greedy strategy
+  epsilon_decay: 0.9995  # Decay rate of exploration rate
+render:
+  max_steps: 100  # Maximum number of steps per episode
+algorithm: policy_iteration  # Algorithm to use: policy_iteration, QLearning

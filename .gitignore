@@ -1,0 +1,6 @@
+.specstory/**
+.cursorindexingignore
+HW2/frozenlake_env/**
+HW2/code/multirun/**
+HW2/code/outputs/**
+**/__pycache__/**

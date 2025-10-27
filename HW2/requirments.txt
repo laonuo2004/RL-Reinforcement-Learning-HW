@@ -1,0 +1,2 @@
+gymnasium[toy_text]
+hydra-core
