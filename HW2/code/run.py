@@ -13,6 +13,7 @@ from gymnasium.envs.toy_text.frozen_lake import FrozenLakeEnv, generate_random_m
 from algorithm import PType, policy_iteration, QLearning
 from config import Config
 from typing import Callable
+import time
 
 def render_result(
     env: gymnasium.Env, 
@@ -34,6 +35,8 @@ def render_result(
     """
     episode_reward = 0
     average_steps = 0
+    success_count = 0
+    
     for iter in range(test_iter):
         state, info = env.reset()
         for t in range(max_steps):
@@ -50,11 +53,16 @@ def render_result(
             episode_reward += reward
             if done:
                 average_steps += t
+                if reward > 0:  # 成功到达目标
+                    success_count += 1
                 break
         if not done:
             print(f"The agent didn't reach a terminal state in {max_steps} steps.")
-    print("Episode reward: %f" % episode_reward)
-    print("Average number of steps: %f" % (average_steps / test_iter))
+    
+    success_rate = (success_count / test_iter) * 100
+    print(f"Total reward: {episode_reward:.2f}")
+    print(f"Success rate: {success_rate:.2f}%")
+    print(f"Average steps (successful episodes): {(average_steps / success_count if success_count > 0 else 0):.2f}")
 
 def get_method(algorithm: str) -> Callable:
     if algorithm == "policy_iteration":
@@ -102,9 +110,12 @@ def main(cfg: Config) -> None:
             render_result(env, max_steps=cfg.render.max_steps)
             return
 
-        print(f"\n{'-' * 27}\nBeginning {method.__name__.upper()}\n{'-' * 27}")
+        print(f"\n{'-' * 50}\nBeginning {method.__name__.upper()}\n{'-' * 50}")
+        
         if method.__name__ == "QLearning":
+            
             env.render_mode = 'ansi'
+            start_time = time.time()
             # during training, we don't want to render the environment
             Q = method(
                 env, 
@@ -114,10 +125,20 @@ def main(cfg: Config) -> None:
                 epsilon, 
                 epsilon_decay
             )
+            training_time = time.time() - start_time
             env.render_mode = cfg.env.render_mode
+            
+            print(f"\nTraining completed in {training_time:.2f} seconds")
+            print(f"\nTest results ({test_iter} episodes):")
             render_result(env, Q, cfg.render.max_steps, test_iter)
+            
         elif method.__name__ == "policy_iteration":
+            start_time = time.time()
             V, p = method(P, nS, nA, gamma, tol)
+            training_time = time.time() - start_time
+            
+            print(f"Training completed in {training_time:.4f} seconds")
+            print(f"\nTest results ({test_iter} episodes):")
             render_result(env, p, cfg.render.max_steps, test_iter)
         else:
             raise ValueError(f"Method {method.__name__} not recognized.")

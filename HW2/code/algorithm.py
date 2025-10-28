@@ -88,12 +88,15 @@ def policy_evaluation(
 
     value_function = np.zeros(nS)
     while True:
-        delta = 0
+        delta = 0 # 用于记录价值函数的变化量，小于tol时认为收敛，停止迭代
         for s in range(nS):
             v = value_function[s]
             a = policy[s]
             
             new_v = 0
+            
+            # 状态价值函数更新公式：V_{k+1}(s) = sum_(a in A) pi(a|s) * (sum_(s' in S') P(s'|s,a) * (R(s'|s,a) + gamma * V_{k}(s')))
+            # 此处由于policy已经确定，所以 A(s) = {a}，pi(a|s) = 1，原式化简为：V_{k+1}(s) = sum_(s' in S') P(s'|s,a) * (R(s'|s,a) + gamma * V_{k}(s'))
             for prob, next_state, reward, terminal in P[s][a]:
                 new_v += prob * (reward + gamma * value_function[next_state])
             value_function[s] = new_v
@@ -137,9 +140,11 @@ def policy_improvement(
     for s in range(nS):
         q_values = np.zeros(nA)
         for a in range(nA):
+            # 动作价值函数更新公式：Q(s,a) = sum_(s' in S) P(s'|s,a) * (R(s'|s,a) + gamma * V(s'))
             for prob, next_state, reward, terminal in P[s][a]:
                 q_values[a] += prob * (reward + gamma * value_from_policy[next_state])
         
+        # 贪婪策略，选择 Q 值最大的动作
         new_policy[s] = np.argmax(q_values)
     
     return new_policy
@@ -176,16 +181,22 @@ def policy_iteration(
 
     value_function = np.zeros(nS)
     policy = np.zeros(nS, dtype=int)
-
+    
+    iterations = 0
     while True:
         value_function = policy_evaluation(P, nS, nA, policy, gamma, tol)
         
         new_policy = policy_improvement(P, nS, nA, value_function, policy, gamma)
         
+        iterations += 1
+        
+        # 如果新旧策略相同，则认为策略收敛，停止迭代
         if np.array_equal(policy, new_policy):
             break
         
         policy = new_policy
+    
+    print(f"Policy Iteration converged in {iterations} iterations")
     
     return value_function, policy
 
@@ -261,7 +272,8 @@ def QLearning(
     total_rewards = []
     success_count = []
     start_time = datetime.now()
-    max_steps_per_episode = 1e6  # 防止无限循环
+    
+    max_steps_per_episode = 100  # 防止无限循环
     
     for episode in range(num_episodes):
         state, info = env.reset()
@@ -270,6 +282,7 @@ def QLearning(
         steps = 0
         
         while not done and steps < max_steps_per_episode:
+            # 实现了 epsilon-greedy 策略，小于 epsilon 时随机选择动作，否则选择 Q 值最大的动作
             if np.random.random() < epsilon:
                 action = env.action_space.sample()
             else:
@@ -279,7 +292,7 @@ def QLearning(
             done = terminated or truncated
             episode_reward += reward
             
-            # Q-learning 更新公式：Q(s,a) ← Q(s,a) + α[r + γ max_a Q(s',a) - Q(s,a)]
+            # Q-learning 更新公式：Q(s,a) ← Q(s,a) + lr * [R(s'|s,a) + gamma * max_a Q(s',a) - Q(s,a)]
             best_next_action = np.argmax(Q[next_state])
             td_target = reward + gamma * Q[next_state, best_next_action]
             td_error = td_target - Q[state, action]
@@ -288,19 +301,21 @@ def QLearning(
             state = next_state
             steps += 1
         
-        epsilon = max(0.1, epsilon * epsilon_decay)
+        epsilon = max(0.1, epsilon * epsilon_decay) # 衰减 epsilon，设置下界保持一定程度的探索
+        
+        # 打印数据用
         total_rewards.append(episode_reward)
         success_count.append(1 if episode_reward > 0 else 0)
         
-        # 每 100 个 episode 打印一次进度
-        if (episode + 1) % 100 == 0:
+        # 每 500 个 episode 打印一次进度
+        if (episode + 1) % 500 == 0:
             end_time = datetime.now()
             elapsed_time = (end_time - start_time).total_seconds()
-            avg_reward = np.mean(total_rewards[-100:])
-            success_rate = np.mean(success_count[-100:]) * 100
+            avg_reward = np.mean(total_rewards[-500:])
+            success_rate = np.mean(success_count[-500:]) * 100
             print(f"Episode {episode + 1}/{num_episodes}, "
-                  f"Avg Reward (last 100): {avg_reward:.3f}, "
-                  f"Success Rate (last 100): {success_rate:.3f}%, "
+                  f"Avg Reward (last 500): {avg_reward:.3f}, "
+                  f"Success Rate (last 500): {success_rate:.3f}%, "
                   f"Time: {elapsed_time:.2f}s, "
                   f"Epsilon: {epsilon:.3f}")
     
