@@ -95,7 +95,14 @@ class DQN(nn.Module):
         # ---------------------             2 填空           -----------------------------#
         # -------------------------------------------------------------------------------#
         # -------------------------------------------------------------------------------#
-    	
+        # 实现DQN网络的前向传播过程
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+        x = x.view(x.size(0), -1)
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
         
 
 # 创建经验池
@@ -174,9 +181,17 @@ class ActionSelector(object):
         #-------------------------------------------------------------------------------#
         #-------------------------------------------------------------------------------#
         # 实现epsilon-贪心策略选择动作a
+        if sample < self._eps:
+            # 随机选择动作
+            action = random.randint(0, self._n_actions - 1)
+        else:
+            # 利用策略网络选择动作
+            with torch.no_grad():
+                state = state.to(self._device)
+                q_values = self._policy_net(state)
+                action = torch.argmax(q_values, dim=1).item()
         
-        
-        return a.numpy()[0, 0].item()
+        return action
 
 def main(test=False):
     # 判断是否可以使用gpu来加速计算
