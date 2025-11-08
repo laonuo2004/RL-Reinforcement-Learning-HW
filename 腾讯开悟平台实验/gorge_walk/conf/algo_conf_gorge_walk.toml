@@ -1,0 +1,49 @@
+[dynamic_programming]
+actor_model = "agent_dynamic_programming.agent.Agent"
+learner_model = "agent_dynamic_programming.agent.Agent"
+aisrv_model = "agent_dynamic_programming.agent.Agent"
+trainer = "kaiwudrl.server.learner.standard_trainer.StandardTrainer"
+predictor = "kaiwudrl.server.actor.standard_predictor.StandardPredictor"
+train_workflow = "agent_dynamic_programming.workflow.train_workflow.workflow"
+eval_workflow = "kaiwu_agent.gorge_walk.dynamic_programming.eval_workflow.workflow"
+exam_workflow = "kaiwu_agent.gorge_walk.dynamic_programming.exam_workflow.workflow"
+
+[monte_carlo]
+actor_model = "agent_monte_carlo.agent.Agent"
+learner_model = "agent_monte_carlo.agent.Agent"
+aisrv_model = "agent_monte_carlo.agent.Agent"
+trainer = "kaiwudrl.server.learner.standard_trainer.StandardTrainer"
+predictor = "kaiwudrl.server.actor.standard_predictor.StandardPredictor"
+train_workflow = "agent_monte_carlo.workflow.train_workflow.workflow"
+eval_workflow = "kaiwu_agent.gorge_walk.monte_carlo.eval_workflow.workflow"
+exam_workflow = "kaiwu_agent.gorge_walk.monte_carlo.exam_workflow.workflow"
+
+[q_learning]
+actor_model = "agent_q_learning.agent.Agent"
+learner_model = "agent_q_learning.agent.Agent"
+aisrv_model = "agent_q_learning.agent.Agent"
+trainer = "kaiwudrl.server.learner.standard_trainer.StandardTrainer"
+predictor = "kaiwudrl.server.actor.standard_predictor.StandardPredictor"
+train_workflow = "agent_q_learning.workflow.train_workflow.workflow"
+eval_workflow = "kaiwu_agent.gorge_walk.q_learning.eval_workflow.workflow"
+exam_workflow = "kaiwu_agent.gorge_walk.q_learning.exam_workflow.workflow"
+
+[sarsa]
+actor_model = "agent_sarsa.agent.Agent"
+learner_model = "agent_sarsa.agent.Agent"
+aisrv_model = "agent_sarsa.agent.Agent"
+trainer = "kaiwudrl.server.learner.standard_trainer.StandardTrainer"
+predictor = "kaiwudrl.server.actor.standard_predictor.StandardPredictor"
+train_workflow = "agent_sarsa.workflow.train_workflow.workflow"
+eval_workflow = "kaiwu_agent.gorge_walk.sarsa.eval_workflow.workflow"
+exam_workflow = "kaiwu_agent.gorge_walk.sarsa.exam_workflow.workflow"
+
+[diy]
+actor_model = "agent_diy.agent.Agent"
+learner_model = "agent_diy.agent.Agent"
+aisrv_model = "agent_diy.agent.Agent"
+trainer = "kaiwudrl.server.learner.standard_trainer.StandardTrainer"
+predictor = "kaiwudrl.server.actor.standard_predictor.StandardPredictor"
+train_workflow = "agent_diy.workflow.train_workflow.workflow"
+eval_workflow = "kaiwu_agent.gorge_walk.diy.eval_workflow.workflow"
+exam_workflow = "kaiwu_agent.gorge_walk.diy.exam_workflow.workflow"

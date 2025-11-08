@@ -1,0 +1,106 @@
+[app]
+
+# === === === === === === === === === === === === === === === === === === === ===
+# The following configurations can be modified as needed by users
+# 下面的配置使用者可以按照需要修改
+# === === === === === === === === === === === === === === === === === === === ===
+
+# Logging related configurations
+# 日志相关配置
+log_dir = "/data/projects/gorge_walk/log"
+level = "INFO"
+
+# Algorithm to be used
+# 采用的算法
+algo = "sarsa"
+
+# Input dimension of reverb samples on learner (Note: different algorithms have different dimensions, e.g., sarsa uses 6)
+# learner上reverb样本的输入维度, 注意不同的算法维度不一样, 比如sarsa的维度是6
+sample_dim = 6
+
+# Learner executes training in a while True loop with sleep time to control sample production/consumption ratio
+# learner执行while True循环的进行训练，设置休息时间以便设置样本生产消耗比
+learner_train_by_while_true = true
+learner_train_sleep_seconds = 0.0001
+
+# Replay buffer configurations
+# 下面是replay buffer的相关配置
+replay_buffer_capacity = 4096
+preload_ratio = 1
+
+# Batch size limit for learner training
+# learner训练批处理大小限制
+train_batch_size = 256
+# Sample production/consumption ratio
+# 样本消耗/生成采样比
+production_consume_ratio = 10
+
+# Evaluation mode model directory path and ID
+# 评估模式模型文件夹路径和ID
+eval_model_dir = "/data/ckpt/gorge_walk_q_learning/"
+eval_model_id = 0
+
+# === === === === === === === === === === === === === === === === === === === ===
+# The following configurations are used by the framework and not recommended for modification
+# 下面的配置, 由框架使用, 不建议使用者修改
+# === === === === === === === === === === === === === === === === === === === ===
+
+# Automatically modified by framework scripts before process startup
+# 进程启动前已经由框架的脚本自动化修改完成
+app = "gorge_walk"
+self_play = false
+set_name = "set1"
+self_play_set_name = "set2"
+selfplay_app_conf = "conf/app_conf_gorge_walk.toml"
+noselfplay_app_conf = "conf/app_conf_gorge_walk.toml"
+algo_conf = "conf/algo_conf_gorge_walk.toml"
+rainbow_env_name = "gorge_walk_dev"
+
+# Distinguish between training and evaluation modes
+# 主要区分训练和评估模式
+run_mode = "train"
+
+# Deep learning framework options: tensorflow_simple, tensorflow_complex, tensorrt, pytorch (default: tensorflow_simple)
+# 使用的强化学习框架, 包括tensorflow_simple, tensorflow_complex, tensorrt, pytorch等, 默认是tensorflow_simple
+use_which_deep_learning_framework = "pytorch"
+
+# Prediction placement: local (aisrv) or remote (actor). Local mode recommended for small scale, remote mode for large scale
+# 预测是放在actor远程还是aisrv本地, 小规模场景建议是aisrv本地local模式, 大规模场景和小规模场景都可以使用的actor远程remote模式
+predict_local_or_remote = "local"
+
+# Actor and learner addresses configuration
+# 设置的actor, learner地址
+actor_addrs = { train_one = ["127.0.0.1:8888"]}
+learner_addrs = {train_one = ["127.0.0.1:9999"]}
+
+# Whether to sync model files to COS
+# 是否同步将model文件上传到cos
+need_to_sync = false
+
+# Standardized integration pattern
+# 接入采用标准化模式
+framework_integration_patterns = "standard"
+
+# KaiwuEnv integration method
+# 采用接入KaiwuEnv方式
+aisrv_framework = "kaiwu_env"
+
+# Wrapper type options: remote, local, none
+# 采用的wrapper形式, 包括remote, local, none
+wrapper_type = "local"
+
+# Directories to be copied during model saving (relative to project root)
+# 在模型文件保存时, 需要保存的文件目录, 多个目录请按照逗号分割, 并且是以项目根目录开始看的
+copy_dir = "conf,agent_dynamic_programming,agent_monte_carlo,agent_sarsa,agent_q_learning,agent_diy"
+
+# Model dump frequency (steps). Adjust based on actual needs
+# 训练间隔多少步输出model文件, 该值需要根据实际情况调整, 设置过小则会导致落模型耗时长, 影响时延; 如果设置过大则导致learner/actor之间model同步间隔长
+dump_model_freq = 10000
+
+# Model pool FIFO size (1 for latest model, higher values for historical models)
+# model文件FIFO的个数, 如果是采用最新的模型则设置为1; 需要采用历史模型则该值设置为需要的比如50, FIFO模式
+modelpool_max_save_model_count = 1
+
+# Actor prediction batch size
+# actor预测批处理大小
+predict_batch_size = 1

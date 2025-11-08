@@ -1,0 +1,45 @@
+[env_conf]
+# Is the start point number.
+# Integer. The value range is 0 to 64, and the default value is [29,9].
+# The start point number and the end point number cannot be repeated.
+# 整型，取值范围为0~64，默认值为[29,9]
+# 起点编号和终点编号不能重复。
+# 起点编号
+start = [29, 9]
+
+# Is the end point number.
+# Integer. The value range is 0 to 64, and the default value is [11,55].
+# The start point number and the end point number cannot be repeated.
+# 整型，取值范围为0~64，默认值为[11,55]，
+# 起点编号和终点编号不能重复。
+# 终点编号
+end = [11, 55]
+
+# Chest ID, an array, ID range: 0~9, and the default value is [].
+# Description: configures the fixed chest IDs
+# 宝箱id，数组，id取值范围：0~9
+# 配置固定宝箱的id
+treasure_id = []
+
+# Integer, 0~10, -1 indicates random, and the default value is 0.
+# Description: Number of chests.
+# Only works when treasure_random = true.
+# 生成随机宝箱时的宝箱数量，仅在treasure_random = true时生效，整型，取值范围为0~10，默认值为0。
+treasure_count = 0
+
+# Is the chest random, boolean, false - fixed chest, true - random chest
+# If fixed is enabled, use treasure_id to generate fixed chests.
+# If random is enabled, use treasure_count to randomly generate chests.
+# If random and hidden spots are enabled, open the hidden spots and use treasure_count to randomly generate chests.
+# The default value is false.
+# 是否生成随机宝箱，布尔值，false表示固定宝箱，true表示随机宝箱。
+# 若开启固定，则使用treasure_id生成固定宝箱。
+# 若开启随机，则使用treasure_count生成随机宝箱。
+# 默认值为false。
+treasure_random = false
+
+# Integer, Value range: 1~2000, default: 2000
+# Description: Max step
+# 整型，取值范围1~2000, 默认2000
+# 最大步数
+max_step = 2000
