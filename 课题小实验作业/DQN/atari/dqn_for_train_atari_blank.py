@@ -95,8 +95,16 @@ class DQN(nn.Module):
         # ---------------------             2 填空           -----------------------------#
         # -------------------------------------------------------------------------------#
         # -------------------------------------------------------------------------------#
-    	
-        
+        # 卷积层前向传播
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+        # 展平操作
+        x = x.view(x.size(0), -1)
+        # 全连接层前向传播
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
 
 # 创建经验池
 class ReplayMemory(object):
@@ -174,8 +182,16 @@ class ActionSelector(object):
         #-------------------------------------------------------------------------------#
         #-------------------------------------------------------------------------------#
         # 实现epsilon-贪心策略选择动作a
-        
-        
+        if sample > self._eps:
+            # 选择最优动作
+            with torch.no_grad():
+                actions_value = self._policy_net(state)
+                a = actions_value.max(1)[1].view(1, 1)
+        else:
+            # 选择随机动作
+            a = torch.tensor([[random.randrange(self._n_actions)]], device=self._device, dtype=torch.long)
+
+
         return a.numpy()[0, 0].item()
 
 def main(test=False):
@@ -232,14 +248,16 @@ def main(test=False):
         # ---------------------             3 填空           -----------------------------#
         # -------------------------------------------------------------------------------#
         # -------------------------------------------------------------------------------#
-        # 计算策略网络的估计价值
-        q = 
-        # 计算目标网络得到的目标价值
-        nq = 
+        # 将状态数据转换为float类型并移动到设备上
+        state_batch = state_batch.float().to(device)
+        # 计算策略网络的估计价值（当前状态-动作对的Q值）
+        q = policy_net(state_batch).gather(1, action_batch)
+        # 计算目标网络得到的目标价值（下一状态的最大Q值）
+        nq = target_net(state_batch).max(1)[0].detach()
         # 计算期望的状态-价值函数值
-        expected_state_action_values = 
+        expected_state_action_values = reward_batch + GAMMA * nq.unsqueeze(1) * (1 - done_batch)
         # 使用smooth_L1函数来计算损失
-        loss = 
+        loss = F.smooth_l1_loss(q, expected_state_action_values) 
 
         # 模型中参数的梯度设为0
         optimizer.zero_grad()
