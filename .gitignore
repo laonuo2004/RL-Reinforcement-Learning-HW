@@ -11,3 +11,4 @@ venv
 **/.vscode
 **/.idea
 课题小实验作业/DQN/atari/Atari-2600-VCS-ROM-Collection
+**/encoded_output.txt
