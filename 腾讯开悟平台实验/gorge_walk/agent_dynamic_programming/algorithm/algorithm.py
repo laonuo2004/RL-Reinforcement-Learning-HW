@@ -26,6 +26,15 @@ class Algorithm:
         # 选择DP算法类型
         self.algo = "value_iteration"
         self.logger = logger
+        
+        # 宝箱位置（需要从Config导入）
+        from agent_dynamic_programming.conf.conf import Config
+        self.treasure_positions = Config.TREASURE_POSITIONS
+        self.position_size = Config.POSITION_SIZE
+        self.treasure_combinations = Config.TREASURE_COMBINATIONS
+        
+        self.logger.info(f"Algorithm initialized with state_size={state_size}, "
+                        f"treasure_positions={self.treasure_positions}")
 
     def learn(self, F):
         assert self.algo in ["policy_iteration", "value_iteration"], "Invalid algorithm"
@@ -110,29 +119,58 @@ class Algorithm:
                 - policy (np.array): 最优策略
                 - V (np.array): 最优状态值数组
         """
+        self.logger.info(f"Starting value iteration with state_size={self.state_size}")
+        self.logger.info(f"This may take some time for large state spaces...")
+        
         V = np.zeros(self.state_size)
 
         i = 0
+        import time
+        start_time = time.time()
+        
         while i < self.episodes:
+            iter_start = time.time()
             delta = 0
 
+            # 对所有状态进行值迭代
             for state in range(self.state_size):
                 v = V[state]
-
+                
+                # 贝尔曼最优方程：选择使值函数最大的动作
                 V[state] = max(self._get_value(state, action, F, V) for action in range(self.action_size))
-
+                
                 delta = max(delta, abs(v - V[state]))
+            
+            iter_time = time.time() - iter_start
 
+            # 收敛检查
             if delta < self.theta:
+                self.logger.info(f"Converged at iteration {i} with delta={delta:.6f}")
                 self.episodes_self = i
                 break
 
+            # 计算当前策略
             policy = self.policy_improvement(self.q_value_iteration(V, F))
 
+            # 定期输出日志
             if i % 10 == 0:
-                self.logger.info("Iteration {}".format(i))
+                elapsed = time.time() - start_time
+                avg_time_per_iter = elapsed / (i + 1)
+                est_remaining = avg_time_per_iter * (self.episodes - i - 1)
+                
+                self.logger.info(f"Iteration {i}/{self.episodes}, delta={delta:.6f}, "
+                               f"iter_time={iter_time:.2f}s, elapsed={elapsed:.2f}s, "
+                               f"est_remaining={est_remaining:.2f}s")
+            
             i += 1
 
+        total_time = time.time() - start_time
+        self.logger.info(f"Value iteration completed in {total_time:.2f}s ({i} iterations)")
+        
+        # 最后一次计算策略
+        if i >= self.episodes:
+            policy = self.policy_improvement(self.q_value_iteration(V, F))
+        
         self.agent_policy = policy
 
         return policy, V
@@ -242,38 +280,65 @@ class Algorithm:
         return policy
 
     def _get_value(self, state, action, F, V):
-        """Get value of the state-action pair
+        """Get value of the state-action pair with treasure collection
 
         Args:
-            state (int): current state
+            state (int): current state (encoded with position and treasure status)
             action (int): action taken
             F (dict): transition function (state-action pair -> next state, reward, done)
-            gamma (float): discount factor
             V (np.array): state-value array
 
         Returns:
             value (float): value of the state-action pair
         """
-        """获取状态-动作对的值
+        """获取状态-动作对的值（考虑宝箱收集）
 
         参数:
-            state (整数): 当前状态
+            state (整数): 当前状态（编码了位置和宝箱状态）
             action (整数): 执行的动作
-            F (字典): 转移函数 (状态-动作对 -> 下一个状态, 奖励, 完成)
-            gamma (浮点数): 折扣因子
+            F (字典): 转移函数 (位置状态-动作对 -> 下一个位置, 奖励, 完成)
             V (np.array): 状态值数组
 
         返回:
             value (浮点数): 状态-动作对的值
         """
-        value = 0
-
+        # 1. 解码状态：分离位置和宝箱状态
+        pos_id = state // self.treasure_combinations  # 位置ID (0-4095)
+        treasure_encoding = state % self.treasure_combinations  # 宝箱状态编码 (0-1023)
+        
         try:
-            next_state, reward, _ = F[str(state)][str(action)]
-            if reward == 0:
-                reward = -1
+            # 2. 从地图数据F获取基础状态转移（只基于位置）
+            next_pos_id, base_reward, done = F[str(pos_id)][str(action)]
+            
+            # 3. 计算移动奖励
+            if base_reward == 0:
+                # 普通移动：-0.2（与评分机制一致）
+                reward = -0.2
+            else:
+                # 到达终点：+150
+                reward = base_reward
+            
+            # 4. 检查是否收集到宝箱
+            next_treasure_encoding = treasure_encoding  # 默认宝箱状态不变
+            
+            # 检查下一个位置是否有宝箱
+            if next_pos_id in self.treasure_positions:
+                treasure_id = self.treasure_positions.index(next_pos_id)
+                # 检查该宝箱是否可收集（第treasure_id位是否为1）
+                if (treasure_encoding >> treasure_id) & 1 == 1:
+                    # 收集宝箱：+100分
+                    reward += 100
+                    # 更新宝箱状态：将第treasure_id位设为0（已收集）
+                    next_treasure_encoding = treasure_encoding & ~(1 << treasure_id)
+            
+            # 5. 编码新状态
+            next_state = next_pos_id * self.treasure_combinations + next_treasure_encoding
+            
+            # 6. 计算状态-动作值
             value = reward + self.gamma * V[next_state]
+            
         except KeyError:
-            pass
-
+            # 动作不可执行（遇到障碍物）
+            value = -float('inf')
+        
         return value

@@ -46,37 +46,29 @@ class Agent(BaseAgent):
         self.algorithm.learn(F)
 
     def observation_process(self, raw_obs, game_info):
-        # By default, only positional information is used as features. If additional feature processing is performed,
-        # corresponding modifications are needed for the Policy structure, predict, exploit, and learn methods of the algorithm.
-        # 默认仅使用位置信息作为特征, 如进行额外特征处理, 则需要对算法的Policy结构, predict, exploit, learn进行相应的改动
-
+        # 扩展状态空间：位置 + 宝箱状态
+        # Extended state space: position + treasure status
+        
+        # 1. 获取位置信息
         pos = [game_info.pos_x, game_info.pos_z]
-        # Feature #1: Current state of the agent (1-dimensional representation)
-        # 特征#1: 智能体当前 state (1维表示)
-        state = [int(pos[0] * 64 + pos[1])]
-        # Feature #2: One-hot encoding of the agent's current position
-        # 特征#2: 智能体当前位置信息的 one-hot 编码
-        pos_row = [0] * 64
-        pos_row[pos[0]] = 1
-        pos_col = [0] * 64
-        pos_col[pos[1]] = 1
-
-        # Feature #3: Discretized distance of the agent's current position from the endpoint
-        # 特征#3: 智能体当前位置相对于终点的距离(离散化)
-        # Feature #4: Discretized distance of the agent's current position from the treasure
-        # 特征#4: 智能体当前位置相对于宝箱的距离(离散化)
-        end_treasure_dists = raw_obs
-
-        raw_obs = np.concatenate(
-            [
-                state,
-                pos_row,
-                pos_col,
-                end_treasure_dists,
-            ]
-        )
-
-        return ObsData(feature=int(raw_obs[0]))
+        pos_id = int(pos[0] * 64 + pos[1])  # 位置ID (0-4095)
+        
+        # 2. 获取宝箱状态（从 game_info.treasure_status）
+        # treasure_status 是长度为10的列表，1表示可收集，0表示已收集或未生成
+        treasure_status = game_info.treasure_status
+        
+        # 3. 将宝箱状态编码为一个整数 (0-1023)
+        # 使用二进制编码：第i位为1表示宝箱i可收集
+        treasure_encoding = sum([treasure_status[i] * (2 ** i) for i in range(10)])
+        
+        # 4. 组合成完整状态
+        # state = pos_id * 1024 + treasure_encoding
+        full_state = pos_id * Config.TREASURE_COMBINATIONS + treasure_encoding
+        
+        self.logger.debug(f"Position: {pos}, Pos_ID: {pos_id}, Treasure Status: {treasure_status}, "
+                         f"Treasure Encoding: {treasure_encoding}, Full State: {full_state}")
+        
+        return ObsData(feature=int(full_state))
 
     def action_process(self, act_data):
         pass
