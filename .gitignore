@@ -14,3 +14,4 @@ venv
 **/encoded_output.txt
 **/logs
 **/*.pth
+腾讯开悟平台实验/gorge_walk/*.md
