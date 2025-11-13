@@ -7,9 +7,10 @@ HW2/code/outputs/**
 venv
 **/_MACOSX
 **/.DS_Store
-**/._DS_Store
+**/._.DS_Store
 **/.vscode
 **/.idea
 课题小实验作业/DQN/atari/Atari-2600-VCS-ROM-Collection
 **/encoded_output.txt
 **/logs
+**/*.pth

@@ -185,6 +185,7 @@ class ActionSelector(object):
         if sample > self._eps:
             # 选择最优动作
             with torch.no_grad():
+                state = state.to(self._device).float() / 255.0
                 actions_value = self._policy_net(state)
                 a = actions_value.max(1)[1].view(1, 1)
         else:
@@ -192,7 +193,7 @@ class ActionSelector(object):
             a = torch.tensor([[random.randrange(self._n_actions)]], device=self._device, dtype=torch.long)
 
 
-        return a.numpy()[0, 0].item()
+        return a.item()
 
 def main(test=False):
     # 判断是否可以使用gpu来加速计算
@@ -269,17 +270,9 @@ def main(test=False):
         # 更新模型
         optimizer.step()
 
-        # 打印训练过程的loss
+        # 记录训练过程的loss
         loss_list.append(loss.cpu().item())
         count_list.append(step)
-        # 不断更新显示绘制每一轮的奖励得分情况
-        plt.plot(count_list, loss_list, c='r', ls='-', marker='o', mec='b', mfc='w')  
-        # 设置x轴标题
-        plt.xlabel('训练步数')
-        # 设置y轴标题
-        plt.ylabel('loss')
-        # 图像每次显示0.02秒
-        plt.pause(0.02)
 
     # 模型的测试
     def evaluate(step, policy_net, device, env, n_actions, eps=0.05, num_episode=5, test=False):
@@ -356,6 +349,20 @@ def main(test=False):
         #模型的保存
         if step !=0 and step % EVALUATE_FREQ == 0 and not test:
             torch.save(policy_net.state_dict(), os.getcwd() + "/dqn_atari.pth")
+    
+    # 训练结束后绘制loss变化图
+    if not test and len(loss_list) > 0:
+        plt.figure(figsize=(10, 6))
+        plt.plot(count_list, loss_list, c='r', ls='-', marker='o', mec='b', mfc='w', markersize=2)
+        plt.xlabel('训练步数')
+        plt.ylabel('loss')
+        plt.title('DQN训练Loss变化图')
+        plt.grid(True, alpha=0.3)
+        # 保存图片
+        plt.savefig('loss_curve.png', dpi=300, bbox_inches='tight')
+        print("\nloss变化图已保存为 loss_curve.png")
+        plt.show()
+    
     env.close()
 
 if __name__ == "__main__":
