@@ -376,7 +376,9 @@ class Algorithm:
                 # 检查该宝箱是否可收集（第treasure_id位是否为1）
                 if (treasure_encoding >> treasure_id) & 1 == 1:
                     # 收集宝箱：+100分
-                    reward += 100
+                    # reward += 100
+                    # 调参：强行将宝箱的 reward 设得更大，强行去收集宝箱
+                    reward += 1e5
                     # 更新宝箱状态：将第treasure_id位设为0（已收集）
                     next_treasure_encoding = treasure_encoding & ~(1 << treasure_id)
             

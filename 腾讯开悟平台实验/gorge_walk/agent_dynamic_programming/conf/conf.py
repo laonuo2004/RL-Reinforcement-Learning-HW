@@ -21,7 +21,7 @@ class Config:
     ACTION_SIZE = 4
     GAMMA = 0.9
     THETA = 1e-3
-    EPISODES = 100
+    EPISODES = 250
     
     # 宝箱位置（状态ID）
     TREASURE_POSITIONS = [
