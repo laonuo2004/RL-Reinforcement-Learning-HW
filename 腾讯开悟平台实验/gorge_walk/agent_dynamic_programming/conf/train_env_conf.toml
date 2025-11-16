@@ -36,7 +36,7 @@ treasure_count = 10
 # 若开启固定，则使用treasure_id生成固定宝箱。
 # 若开启随机，则使用treasure_count生成随机宝箱。
 # 默认值为false。
-treasure_random = true
+treasure_random = false
 
 # Integer, Value range: 1~2000, default: 2000
 # Description: Max step

@@ -31,10 +31,13 @@ class Algorithm:
         from agent_dynamic_programming.conf.conf import Config
         self.treasure_positions = Config.TREASURE_POSITIONS
         self.position_size = Config.POSITION_SIZE
-        self.treasure_combinations = Config.TREASURE_COMBINATIONS
+        self.num_stages = Config.NUM_STAGES  # 阶段数量（0-10，共11个）
+        self.optimal_order = Config.OPTIMAL_TREASURE_ORDER  # TSP最优顺序
         
         self.logger.info(f"Algorithm initialized with state_size={state_size}, "
-                        f"treasure_positions={self.treasure_positions}")
+                        f"position_size={self.position_size}, num_stages={self.num_stages}, "
+                        f"treasure_positions={self.treasure_positions}, "
+                        f"optimal_order={self.optimal_order}")
 
     def learn(self, F):
         assert self.algo in ["policy_iteration", "value_iteration"], "Invalid algorithm"
@@ -69,23 +72,18 @@ class Algorithm:
     
     def _compute_reachable_states(self, F):
         """
-        计算所有可达状态集合
-        从起点开始，通过BFS遍历所有可达的状态
+        计算所有可达状态集合（方案A：位置 × 阶段）
+        状态 = 位置 × 11 + 阶段
         """
         reachable = set()
-        
-        # 从所有可能的起点开始（所有位置，所有宝箱组合）
-        # 但实际上，我们只需要考虑从起点开始的状态
-        # 为了简化，我们计算所有位置可达的状态
         
         # 获取所有可达的位置
         reachable_positions = set(F.keys())
         
-        # 对于每个可达位置，所有宝箱组合都是可达的
-        # （因为宝箱状态是状态的一部分，不影响位置可达性）
+        # 对于每个可达位置和每个阶段，都是可达的状态
         for pos_id in reachable_positions:
-            for treasure_encoding in range(self.treasure_combinations):
-                state = pos_id * self.treasure_combinations + treasure_encoding
+            for stage in range(self.num_stages):
+                state = pos_id * self.num_stages + stage
                 reachable.add(state)
         
         return reachable
@@ -328,10 +326,10 @@ class Algorithm:
         return policy
 
     def _get_value(self, state, action, F, V):
-        """Get value of the state-action pair with treasure collection
+        """Get value of the state-action pair (Plan A: position + stage)
 
         Args:
-            state (int): current state (encoded with position and treasure status)
+            state (int): current state (position * 11 + stage)
             action (int): action taken
             F (dict): transition function (state-action pair -> next state, reward, done)
             V (np.array): state-value array
@@ -339,10 +337,10 @@ class Algorithm:
         Returns:
             value (float): value of the state-action pair
         """
-        """获取状态-动作对的值（考虑宝箱收集）
+        """获取状态-动作对的值（方案A：位置 + 阶段）
 
         参数:
-            state (整数): 当前状态（编码了位置和宝箱状态）
+            state (整数): 当前状态（位置 * 11 + 阶段）
             action (整数): 执行的动作
             F (字典): 转移函数 (位置状态-动作对 -> 下一个位置, 奖励, 完成)
             V (np.array): 状态值数组
@@ -350,13 +348,12 @@ class Algorithm:
         返回:
             value (浮点数): 状态-动作对的值
         """
-        # 1. 解码状态：分离位置和宝箱状态
-        pos_id = state // self.treasure_combinations  # 位置ID (0-4095)
-        treasure_encoding = state % self.treasure_combinations  # 宝箱状态编码 (0-1023)
+        # 1. 解码状态：分离位置和阶段
+        pos_id = state // self.num_stages  # 位置ID (0-4095)
+        stage = state % self.num_stages     # 阶段 (0-10)
         
         try:
             # 2. 从地图数据F获取基础状态转移（只基于位置）
-            # 优化：使用整数键而不是字符串键（速度提升3-5倍）
             next_pos_id, base_reward, done = F[pos_id][action]
             
             # 3. 计算移动奖励
@@ -367,23 +364,25 @@ class Algorithm:
                 # 到达终点：+150
                 reward = base_reward
             
-            # 4. 检查是否收集到宝箱
-            next_treasure_encoding = treasure_encoding  # 默认宝箱状态不变
+            # 4. 检查是否收集到宝箱（按TSP顺序）
+            next_stage = stage  # 默认阶段不变
             
-            # 优化：使用字典查找而不是列表查找（速度提升2倍）
+            # 检查下一个位置是否是宝箱位置
             treasure_id = self.treasure_pos_dict.get(next_pos_id)
-            if treasure_id is not None:
-                # 检查该宝箱是否可收集（第treasure_id位是否为1）
-                if (treasure_encoding >> treasure_id) & 1 == 1:
-                    # 收集宝箱：+100分
-                    # reward += 100
-                    # 调参：强行将宝箱的 reward 设得更大，强行去收集宝箱
-                    reward += 1e5
-                    # 更新宝箱状态：将第treasure_id位设为0（已收集）
-                    next_treasure_encoding = treasure_encoding & ~(1 << treasure_id)
+            
+            if treasure_id is not None and stage < len(self.optimal_order):
+                # 到达了一个宝箱位置
+                # 检查这个宝箱是否是当前阶段应该收集的
+                expected_treasure_id = self.optimal_order[stage]
+                
+                if treasure_id == expected_treasure_id:
+                    # 收集到了当前阶段应该收集的宝箱！
+                    reward += 1e5  # 给予大额奖励
+                    next_stage = stage + 1  # 进入下一阶段
+                # 否则，到达的不是当前应该收集的宝箱，不给奖励，阶段不变
             
             # 5. 编码新状态
-            next_state = next_pos_id * self.treasure_combinations + next_treasure_encoding
+            next_state = next_pos_id * self.num_stages + next_stage
             
             # 6. 计算状态-动作值
             value = reward + self.gamma * V[next_state]

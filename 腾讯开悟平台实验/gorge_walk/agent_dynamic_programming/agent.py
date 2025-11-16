@@ -46,27 +46,42 @@ class Agent(BaseAgent):
         self.algorithm.learn(F)
 
     def observation_process(self, raw_obs, game_info):
-        # 扩展状态空间：位置 + 宝箱状态
-        # Extended state space: position + treasure status
+        # 方案A：位置 + 阶段状态
+        # 状态 = 位置 × 11 + 阶段
+        # 阶段表示按TSP顺序已收集了几个宝箱（0-10）
         
         # 1. 获取位置信息
         pos = [game_info.pos_x, game_info.pos_z]
         pos_id = int(pos[0] * 64 + pos[1])  # 位置ID (0-4095)
         
-        # 2. 获取宝箱状态（从 game_info.treasure_status）
-        # treasure_status 是长度为10的列表，1表示可收集，0表示已收集或未生成
-        treasure_status = game_info.treasure_status
+        # 2. 获取宝箱状态
+        treasure_status = game_info.treasure_status  # [1/2, 1/2, ..., 1/2] 长度10
         
-        # 3. 将宝箱状态编码为一个整数 (0-1023)
-        # 使用二进制编码：第i位为1表示宝箱i可收集
-        treasure_encoding = sum([treasure_status[i] * (2 ** i) for i in range(10)])
+        # 3. 计算当前阶段（按TSP顺序已收集了几个宝箱）
+        # OPTIMAL_TREASURE_ORDER = [0, 1, 2, 4, 5, 9, 8, 3, 6, 7]
+        # treasure_status[i]: 1=可收集（未收集），2=未生成，0=已收集
+        # 
+        # 阶段定义：
+        # 阶段0：还没按顺序收集任何宝箱
+        # 阶段1：已按顺序收集了1个宝箱（宝箱0）
+        # 阶段2：已按顺序收集了2个宝箱（宝箱0,1）
+        # ...
+        # 阶段10：已按顺序收集了全部10个宝箱
+        stage = 0
+        for treasure_id in Config.OPTIMAL_TREASURE_ORDER:
+            if treasure_status[treasure_id] != 1:
+                # 已收集或未生成，认为"已通过"这个阶段
+                stage += 1
+            else:
+                # treasure_status[treasure_id] == 1，可收集（未收集）
+                # 遇到第一个未收集的宝箱，阶段就停在这里
+                break
         
         # 4. 组合成完整状态
-        # state = pos_id * 1024 + treasure_encoding
-        full_state = pos_id * Config.TREASURE_COMBINATIONS + treasure_encoding
+        full_state = pos_id * Config.NUM_STAGES + stage
         
-        self.logger.debug(f"Position: {pos}, Pos_ID: {pos_id}, Treasure Status: {treasure_status}, "
-                         f"Treasure Encoding: {treasure_encoding}, Full State: {full_state}")
+        self.logger.debug(f"Position: {pos}, Pos_ID: {pos_id}, Treasure_Status: {treasure_status}, "
+                         f"Stage: {stage}, Full_State: {full_state}")
         
         return ObsData(feature=int(full_state))
 

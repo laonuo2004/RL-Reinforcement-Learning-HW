@@ -12,12 +12,13 @@ Author: Tencent AI Arena Authors
 # 关于维度的配置
 class Config:
 
+    # 方案A：位置 + 阶段状态
     # 位置状态数：64*64 = 4096
-    # 宝箱状态数：2^10 = 1024 (10个宝箱的所有组合)
-    # 总状态数：4096 * 1024 = 4,194,304
-    POSITION_SIZE = 64 * 64
-    TREASURE_COMBINATIONS = 2 ** 10  # 10个宝箱的所有组合
-    STATE_SIZE = POSITION_SIZE * TREASURE_COMBINATIONS  # 4,194,304
+    # 阶段状态数：11（表示按TSP顺序已收集0-10个宝箱）
+    # 总状态数：4096 * 11 = 45,056
+    POSITION_SIZE = 64 * 64  # 4096
+    NUM_STAGES = 11  # 0-10，表示已收集的宝箱数量
+    STATE_SIZE = POSITION_SIZE * NUM_STAGES  # 45,056
     ACTION_SIZE = 4
     GAMMA = 0.9
     THETA = 1e-3
@@ -36,6 +37,16 @@ class Config:
         2657,  # 宝箱8: [41, 33], 41 * 64 + 33 = 2657
         3497   # 宝箱9: [54, 41], 54 * 64 + 41 = 3497
     ]
+    
+    # TSP最优收集顺序（通过求解TSP问题得到）
+    # 方案A通过阶段状态强制按照这个顺序收集宝箱
+    OPTIMAL_TREASURE_ORDER = [0, 1, 2, 4, 5, 9, 8, 3, 6, 7]
+    
+    # 阶段0：未收集任何宝箱
+    # 阶段1：已收集宝箱0
+    # 阶段2：已收集宝箱0, 1
+    # ...
+    # 阶段10：已收集全部10个宝箱
 
     # dimensionality of the sample
     # 样本维度
