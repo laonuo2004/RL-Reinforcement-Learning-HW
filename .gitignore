@@ -15,3 +15,4 @@ venv
 **/logs
 **/*.pth
 腾讯开悟平台实验/gorge_walk/*.md
+!腾讯开悟平台实验/gorge_walk/README.md
