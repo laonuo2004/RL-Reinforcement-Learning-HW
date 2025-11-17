@@ -6,7 +6,7 @@
 
 ### 三个实验的相关说明
 
-- [峡谷漫步](https://github.com/laonuo2004/RL-Reinforcement-Learning-HW/tree/main/%E8%85%BE%E8%AE%AF%E5%BC%80%E6%82%9F%E5%B9%B3%E5%8F%B0%E5%AE%9E%E9%AA%8C/gorge_walk) (本人实现的动态规划算法效果很好，鲁棒性很强，可以参考)
+- [峡谷漫步](腾讯开悟平台实验/gorge_walk/) (本人实现的动态规划算法效果很好，鲁棒性很强，可以参考)
 
 ### 关于代码手动同步
 
