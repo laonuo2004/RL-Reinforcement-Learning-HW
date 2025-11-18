@@ -46,15 +46,6 @@ if [ ! -s "$INPUT_FILE" ]; then
   exit 1
 fi
 
-# 在解包前进行最终确认
-echo "警告: 本脚本将解压文件并【覆盖】当前目录中同名的文件和文件夹"
-echo "(如果存在同名文件将被覆盖替换)。"
-read -p "您确定要继续吗? (y/N): " confirmation
-if [[ ! "$confirmation" =~ ^[Yy]$ ]]; then
-  echo "操作已取消。"
-  exit 0
-fi
-
 # --- 主逻辑 ---
 
 echo "步骤 1: 正在解码 Base64 并解压..."

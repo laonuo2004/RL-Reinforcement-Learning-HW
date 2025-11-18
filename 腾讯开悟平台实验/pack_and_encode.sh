@@ -79,15 +79,3 @@ echo "后续操作:"
 echo "1. 打开 '$ENCODED_FILE' 文件。"
 echo "2. 复制它的【全部】内容 (Ctrl+A, Ctrl+C)。"
 echo "3. 将内容粘贴到其他平台上的 'decode_and_unpack.sh' 脚本中指定的位置。"
-
-# 尝试自动复制到系统剪贴板
-if command -v xclip &> /dev/null; then
-  cat "$ENCODED_FILE" | xclip -selection clipboard
-  echo "✅ 已自动复制到剪贴板 (使用 xclip)!"
-elif command -v pbcopy &> /dev/null; then
-  cat "$ENCODED_FILE" | pbcopy
-  echo "✅ 已自动复制到剪贴板 (使用 pbcopy for macOS)!"
-elif command -v clip.exe &> /dev/null; then
-  cat "$ENCODED_FILE" | clip.exe
-  echo "✅ 已自动复制到剪贴板 (使用 clip.exe for Windows/WSL)!"
-fi
