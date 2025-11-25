@@ -1,0 +1,137 @@
+[app]
+# === === === === === === === === === === === === === === === === === === === ===
+# Below configurations can be modified as needed by users
+# 下面的配置使用者可以按照需要修改
+# === === === === === === === === === === === === === === === === === === === ===
+
+# Enable learner to train in a continuous loop with sleep intervals to balance sample production/consumption
+# learner执行while True循环的进行训练，设置休息时间以便设置样本生产消耗比
+learner_train_by_while_true = true
+learner_train_sleep_seconds = 0.0001
+
+# Replay buffer configurations
+# 下面是replay buffer的相关配置
+replay_buffer_capacity = 4096
+preload_ratio = 1
+
+# Input dimension for reverb samples on learner (varies by algorithm)
+# learner上reverb样本的输入维度, 注意不同的算法维度不一样
+sample_dim = 21624
+
+# Default number of threads for PyTorch (important for CPU resource control)
+# torch使用时默认的线程数目, 针对单机限制CPU使用很重要
+torch_num_threads = 1
+
+# Batch size for actor prediction
+# actor预测批处理大小
+predict_batch_size = 1
+
+# Sample batch size sent by aisrv in single episode
+# aisrv在单局里多次发送样本大小配置
+send_sample_size = 320
+
+# Training batch size limit for learner
+# learner训练批处理大小限制
+train_batch_size = 256
+
+# Sample production/consumption ratio
+# 样本消耗/生成采样比
+production_consume_ratio = 10
+
+# Reverb removal policy options: Fifo, Lifo, Prioritized
+# reverb移除策略, 可选项是reverb.selectors.Lifo, reverb.selectors.Prioritized, reverb.selectors.Fifo
+reverb_remover = "reverb.selectors.Fifo"
+
+# Reverb sampling policy options: Uniform, Fifo, Prioritized
+# reverb采样策略, 可选项是reverb.selectors.Prioritized, reverb.selectors.Fifo, reverb.selectors.Uniform
+reverb_sampler = "reverb.selectors.Uniform"
+
+# Preload model configurations
+# 预加载模型文件夹路径和ID
+preload_model = false
+preload_model_dir = "/data/ckpt/back_to_the_realm_dqn/"
+preload_model_id = 1000
+
+# Model dump frequency (steps)
+# 训练间隔多少步输出model文件
+dump_model_freq = 1000
+
+# Evaluation model configurations
+# 评估模式模型文件夹路径和ID
+eval_model_dir = "/data/ckpt/back_to_the_realm_dqn/"
+eval_model_id = 0
+
+# === === === === === === === === === === === === === === === === === === === ===
+# Below configurations are framework-related, not recommended for modification
+# 下面的配置, 由框架使用, 不建议使用者修改
+# === === === === === === === === === === === === === === === === === === === ===
+
+# Application specific configurations
+# 下面的项目是每个app要单独配置的
+app = "back_to_the_realm"
+self_play = false
+set_name = "back_to_the_realm_set1000"
+self_play_set_name = "back_to_the_realm_set1000"
+selfplay_app_conf = "conf/app_conf_back_to_the_realm.toml"
+noselfplay_app_conf = "conf/app_conf_back_to_the_realm.toml"
+algo_conf = "conf/algo_conf_back_to_the_realm.toml"
+rainbow_env_name = "back_to_the_realm_dev"
+
+# Runtime mode (train/eval)
+# 训练或者评估模式
+run_mode = "train"
+
+# Algorithm selection
+# 采用的算法
+algo = "dqn"
+
+# Model synchronization interval (minutes)
+# learner/actor之间同步model文件的时间间隔
+model_file_sync_per_minutes = 2
+
+# Model loading interval (minutes)
+# actor加载model文件的时间间隔
+model_file_load_per_minutes = 3
+
+# Deep learning framework selection
+# 使用的强化学习框架
+use_which_deep_learning_framework = "pytorch"
+
+# Prediction location strategy
+# 预测是放在actor远程还是aisrv本地
+predict_local_or_remote = "local"
+
+# Framework integration pattern
+# 接入采用标准化模式
+framework_integration_patterns = "standard"
+
+# AISRV framework type
+# 采用接入KaiwuEnv方式
+aisrv_framework = "kaiwu_env"
+
+# Wrapper type options
+# 采用的wrapper形式
+wrapper_type = "remote"
+
+# Directories to include in model saving
+# 模型文件保存时需要包含的目录
+copy_dir = "conf,agent_target_dqn,agent_dqn,agent_diy"
+
+# AISRV connection configuration
+# 单个aisrv连接的kaiwu_env的数目
+aisrv_connect_to_kaiwu_env_count = 8
+
+# Model pool capacity
+# model文件FIFO的个数
+modelpool_max_save_model_count = 1
+
+# Logging configurations
+# 下面是日志文件相关配置
+log_dir = "/data/projects/back_to_the_realm/log"
+level = "INFO"
+tensorflow_log_level = "INFO"
+
+# Network addresses configuration
+# 设置actor和learner地址
+actor_addrs = { train_one = ["127.0.0.1:8888"]}
+learner_addrs = {train_one = ["127.0.0.1:9999"]}
