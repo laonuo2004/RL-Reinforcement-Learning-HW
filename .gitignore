@@ -1,5 +1,5 @@
-.specstory/**
-.cursorindexingignore
+**/.specstory/
+**/.cursorindexingignore
 HW2/frozenlake_env/**
 HW2/code/multirun/**
 HW2/code/outputs/**
@@ -16,3 +16,4 @@ venv
 **/*.pth
 腾讯开悟平台实验/gorge_walk/*.md
 !腾讯开悟平台实验/gorge_walk/README.md
+**/*.zip
